@@ -1,0 +1,19 @@
+#
+# Mac files
+# 
+.DS_Store
+
+#
+# Log folder
+#
+log
+
+#
+# Zip files
+# 
+*.zip
+
+#
+# Result file
+#
+meta_documents.csv
