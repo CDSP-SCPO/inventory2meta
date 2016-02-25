@@ -1,2 +1,2 @@
 # inventory2meta
-generate metadocumen from inventory
+generate metadocument from inventory
