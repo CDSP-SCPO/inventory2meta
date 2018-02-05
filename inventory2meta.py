@@ -1,6 +1,7 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- coding: utf-8 -*-
 # Execution example : python inventory2meta.py "path/to/inventory/file.csv"
+# ToDo : bug to solve : 'ascii' codec can't decode byte 0xc2 in position 129
 
 #
 # Libs
@@ -8,6 +9,10 @@
 import codecs
 import csv
 import sys
+
+# Force default encoding to utf-8
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 #
 # Config
@@ -22,46 +27,61 @@ csv_quotechar = '"'
 
 def loadCsvFile(file) :
 	data = []
-	with open(file, 'rb') as f :
-		spamreader = csv.reader(f, delimiter=csv_delimiter, quotechar=csv_quotechar)
+	with codecs.open(file, mode='rb', encoding='utf-8') as f :
+		# spamreader = csv.reader(f, delimiter=csv_delimiter, quotechar=csv_quotechar)
+		# ToDo : set fieldnames
+		fieldnames = []
+		spamreader = csv.DictReader(f, fieldnames=fieldnames)
 		for s in spamreader :
 			data.append(s)
 	# Skip the first lines that are useless
-	return data[4:]
+	return data[3:]
 
 # Generate the meta_documents data
 def generateMetaDocument(input) :
 	output = []
 	for i in input :
-		file_id = i[1]
+		tmp = {}
+		tmp["id"] = i[None][1].encode('utf-8')
 		# Has to be generated based on the file_id
-		file_file = ''
+		tmp['file'] = i[None][3].decode('ascii') + '/' + i[None][4].decode('ascii') + '/' + i[None][5].decode('ascii') + '/' + i[None][1].decode('ascii')
 		# tei, pdf, htm, csv, link or ref
-		file_mimetype = ''
+		tmp['mimetype'] = i[None][16].decode('ascii')
 		# Label written on the website
-		file_name = ''
+		# print i[None][10].decode('ascii')
+		tmp['name'] = i[None][10].decode('ascii')
 		# prep, col, anal, ese or compl
-		file_researchPhase = ''
+		tmp['researchPhase'] = i[None][3].decode('ascii')
 		# admi, audio, docu, icono, inter, methodo, note, publi, revis or transcr
-		file_documentType = ''
-		file_article = ''
-		file_location_01 = ''
-		file_location_02 = ''
-		file_locationgeo_01 = ''
-		file_locationgeo_02 = ''
-		file_date = ''
-		output.append([file_id, file_file, file_mimetype, file_name, file_researchPhase, file_documentType, file_article, file_location_01, file_location_02, file_locationgeo_01, file_locationgeo_02, file_date])
+		tmp['documentType'] = i[None][4].decode('ascii')
+		# file_article = ''
+		tmp['article'] = ''
+		# file_location_01 = ''
+		tmp['location'] = ''
+		# file_location_02 = ''
+		tmp['location'] = ''
+		# file_locationgeo_01 = ''
+		tmp['locationgeo'] = ''
+		# file_locationgeo_02 = ''
+		tmp['locationgeo'] = ''
+		tmp['date'] = i[None][11].decode('ascii')
+		output.append(tmp)
+		# print output
 	return output
 
 # Write data into a CSV file as result
 def writeCsvFile(data) :
 	# Add csv headers
-	csv_headers = [['id', 'file', 'mimetype', 'name', 'researchPhase', 'documentType', 'article', 'location', 'location', 'locationgeo', 'locationgeo', 'date']]
-	data = csv_headers + data
+	# csv_headers = [['id', 'file', 'mimetype', 'name', 'researchPhase', 'documentType', 'article', 'location', 'location', 'locationgeo', 'locationgeo', 'date']]
+	fieldnames = ['id', 'file', 'mimetype', 'name', 'researchPhase', 'documentType', 'article', 'location', 'location', 'locationgeo', 'locationgeo', 'date']
+	# data = [{'id' : 'flag_01', 'file' : 'flag_02', 'mimetype' : 'flag_03', 'name' : 'flag_04', 'researchPhase' : 'flag_05', 'documentType' : 'flag_06', 'article' : 'flag_07', 'location' : 'flag_08', 'location' : 'flag_09', 'locationgeo' : 'flag_10', 'locationgeo' : 'flag_11', 'date' : 'flag_12'}]
+	# data = csv_headers + data
 	# Write results into a CSV data file
 	with codecs.open(csv_file, 'wb', 'utf8') as f :
-		spamwriter = csv.writer(f, delimiter=csv_delimiter, quotechar=csv_quotechar)
-		spamwriter.writerows(data)
+		# spamwriter = csv.writer(f, delimiter=csv_delimiter, quotechar=csv_quotechar)
+		csvwriter = csv.DictWriter(f, fieldnames=fieldnames, delimiter=csv_delimiter)
+		csvwriter.writeheader()
+		csvwriter.writerows(data)
 	f.close()
 
 #
@@ -74,7 +94,6 @@ if __name__ == '__main__' :
 		input = loadCsvFile(sys.argv[1])
 		# Generate meta_document
 		output = generateMetaDocument(input)
-		print output
 		# Write meta_document
 		writeCsvFile(output)
 	else :
